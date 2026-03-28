@@ -106,6 +106,64 @@ Protocols defined as pure data structures, decoupling transport from business lo
 
 ---
 
+## Phase 5: Stateless UI Process
+
+After introducing the multi-process architecture, the IME core logic was moved out of the TSF DLL into a dedicated server process. However, the candidate window UI was still coupled with the core logic, introducing new issues.
+
+### Pain Points
+
+1. UI logic tightly coupled with business logic
+2. UI crashes may affect core stability
+3. Difficult to adopt modern UI frameworks
+4. Hard to reuse UI across platforms
+5. Risk of UI and core state inconsistency
+
+![Clean Architecture V1.1.0](assets/Modian%20Architecture%20V1.1.0.png)
+*(Modian V1.1.0)*
+
+### Key Changes
+
+We further split the UI into an independent process: Modian-Ink
+- UI runs as a separate process
+- Core server becomes single source of truth
+- UI becomes stateless renderer
+- State synchronized via IPC
+- User actions sent back to core
+
+Architecture evolves into:
+
+TSF Client → Core Server → UI Renderer
+
+### Design Principles
+
+**Stateless UI**
+
+UI does not own business state. It renders based on RenderState.
+
+**Unidirectional Data Flow**
+
+Core → UI : RenderState
+UI → Core : UserAction
+
+**Crash Isolation**
+
+UI crashes do not affect IME core.
+
+**Cross-platform UI**
+
+Allows using modern web-based UI frameworks.
+
+### Benefits
+
+- Full decoupling between UI and core
+- UI crash isolation
+- Supports modern UI frameworks (Tauri / Web) and allows switching rendering implementations depending on performance or platform requirements (e.g. WinUI, ImGui, native UI).
+- Cross-platform UI reuse
+- Clear data flow and state management
+- Foundation for plugin-based UI extensions
+
+---
+
 ## Summary
 
 From **V0.1** to **V1.0**, Modian demonstrates a key principle:
